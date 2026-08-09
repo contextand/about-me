@@ -6,6 +6,28 @@
 <title>라용</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css">
 <style>
+  /* 본문에 쓸 만한 것만 골랐다. 각 폰트의 Regular 한 벌씩. */
+  @font-face { font-family: 'PyeojinGothic'; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2504-1@1.0/PyeojinGothic-Regular.woff2') format('woff2'); }
+  @font-face { font-family: 'A2z'; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2601-6@1.0/에이투지체-4Regular.woff2') format('woff2'); }
+  @font-face { font-family: 'SeoulNotice'; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2505-1@1.0/SeoulAlrimTTF-Medium.woff2') format('woff2'); }
+  @font-face { font-family: 'SchoolSafetyRoundedSmile'; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-5@1.0/HakgyoansimDunggeunmisoTTF-R.woff2') format('woff2'); }
+  @font-face { font-family: 'SchoolSafetyNotification'; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-5@1.0/HakgyoansimAllimjangTTF-R.woff2') format('woff2'); }
+  @font-face { font-family: 'ChosunIlboMyungjo'; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/Chosunilbo_myungjo.woff') format('woff'); }
+  @font-face { font-family: 'Ridibatang'; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.0/RIDIBatang.woff') format('woff'); }
+  @font-face { font-family: 'Yeongwol'; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2507-2@1.0/YeongwolTTF-Regular.woff2') format('woff2'); }
+  @font-face { font-family: 'Library'; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408@1.0/LibraryK.woff2') format('woff2'); }
+  @font-face { font-family: 'Independent'; font-display: swap;
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.1/Dokrip.woff') format('woff'); }
+
   :root {
     --margin: 20px;
     --gutter: 20px;
@@ -41,16 +63,52 @@
   .top { align-items: start; }
   .bottom { align-items: end; }
 
-  /* 빈 공간. 위아래 뭉치가 쓰고 남은 높이를 전부 가져간다. */
-  .void { flex: 1 0 60px; }
+  /* 빈 공간. 위아래 뭉치가 쓰고 남은 높이를 전부 가져간다.
+     본문과 같은 12컬럼 위에, 높이를 6등분한 줄을 얹어 소개 네 조각을 흩는다.
+     소개는 본문 폰트가 무엇으로 바뀌든 늘 같은 얼굴로 둔다. */
+  .void {
+    flex: 1 0 140px;
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    column-gap: var(--gutter);
+    align-items: start;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+  }
 
   .col p { margin: 0; }
+
+  .id-item { color: inherit; text-decoration: none; display: block; }
+  .id-item[href]:hover { text-decoration: underline; }
+
+  /* 브라우저 기본 title 툴팁은 뜨는 데 1초 넘게 걸리고 브라우저마다 다르게 굴어서 직접 만든다. */
+  .id-item[data-tooltip] { position: relative; cursor: default; }
+  .id-item[data-tooltip]::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 0;
+    bottom: 100%;
+    margin-bottom: 0.4em;
+    font-size: 0.85em;
+    color: #888;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+  .id-item[data-tooltip]:hover::after { opacity: 1; }
+
+  /* 좁아지면 컬럼이 좁아져 글이 길게 늘어나 한 화면을 넘긴다. 한 단계만 줄인다. */
+  @media (max-width: 1399px) {
+    body { font-size: 12px; }
+  }
 
   @media (max-width: 900px) {
     .grid { grid-template-columns: 1fr; }
     .col { grid-column: 1 !important; margin-bottom: 1.8em; }
     .bottom { align-items: start; }
-    .void { flex: 0 0 12vh; }
+    /* 좁은 화면에서는 흩지 않고 차례대로 쌓는다. */
+    .void { flex: 0 0 auto; display: block; margin: 10vh 0; }
   }
 </style>
 </head>
@@ -59,7 +117,13 @@
 <div class="page">
   <section class="grid top" id="top"></section>
 
-  <div class="void"></div>
+  <!-- 네 조각이 각자 따로 놓인다. -->
+  <div class="void">
+    <div class="id-item" data-tooltip="이름입니다">라용</div>
+    <div class="id-item">그래픽 디자이너</div>
+    <a class="id-item" href="https://blog.naver.com/skdyds" target="_blank" rel="noopener">네이버 블로그</a>
+    <a class="id-item" href="https://www.instagram.com/skdyds/" target="_blank" rel="noopener">인스타그램</a>
+  </div>
 
   <section class="grid bottom" id="bottom"></section>
 </div>
@@ -126,9 +190,28 @@ const texts = [...document.getElementById('texts').content.querySelectorAll('p')
 const topEl = document.getElementById('top');
 const bottomEl = document.getElementById('bottom');
 
+const FONTS = [
+  "'Pretendard'", "'PyeojinGothic'", "'A2z'", "'SeoulNotice'",
+  "'SchoolSafetyRoundedSmile'", "'SchoolSafetyNotification'",
+  "'ChosunIlboMyungjo'", "'Ridibatang'", "'Yeongwol'", "'Library'", "'Independent'"
+];
+
+// 화면을 넘길 때마다 폰트를 쓰는 방식이 바뀐다.
+// 0: 전부 한 폰트 → 1: 위아래 두 폰트 → 2: 단락마다 다른 폰트 → 다시 0
+function fontPlan(mode, first) {
+  const pool = shuffle([...FONTS]);
+  if (mode === 0) {
+    // 맨 처음 보이는 화면만 Pretendard로 고정하고, 이후 한 폰트 화면은 매번 다르게.
+    const only = first ? "'Pretendard'" : pool[0];
+    return { load: [only], of: () => only };
+  }
+  if (mode === 1) return { load: pool.slice(0, 2), of: slot => slot.host === topEl ? pool[0] : pool[1] };
+  return { load: pool, of: (slot, i) => pool[i % pool.length] };
+}
+
 // 컬럼 하나에 글 하나. 2와 4를 섞은 조합은 언제나 4칸 아니면 5칸이라
 // 위아래 합쳐 8~10편이 뽑힌다.
-function candidate() {
+function candidate(plan) {
   const slots = [
     ...composition().map(span => ({ span, host: topEl })),
     ...composition().map(span => ({ span, host: bottomEl }))
@@ -139,39 +222,79 @@ function candidate() {
   shuffle([...texts]).slice(0, slots.length)
     .forEach((text, i) => { slots[i].text = text; });
 
-  return slots;
+  slots.forEach((slot, i) => { slot.font = plan.of(slot, i); });
+
+  return { slots, identity: scatter() };
 }
 
-function render(slots) {
+// 소개 네 조각의 자리. 두 칸짜리 넷을 12칸에 놓고 남는 네 칸을
+// 다섯 틈에 무작위로 나눈다. 가로로 겹칠 일이 없다.
+// 줄은 여백을 6등분한 것 중 아무 데나. 조각마다 따로 정한다.
+function scatter() {
+  const gaps = [0, 0, 0, 0, 0];
+  for (let i = 0; i < 4; i++) gaps[Math.floor(Math.random() * 5)]++;
+
+  const places = [];
+  let column = 1;
+  for (let i = 0; i < 4; i++) {
+    column += gaps[i];
+    // 맨 첫 줄(1)에 앉으면 위 뭉치와 맞닿아 '라용' 위로 뜨는 툴팁이 가릴 자리가 없다.
+    const minRow = i === 0 ? 2 : 1;
+    places.push({ column, row: minRow + Math.floor(Math.random() * (7 - minRow)) });
+    column += 2;
+  }
+  return places;
+}
+
+const idItems = [...document.querySelectorAll('.id-item')];
+
+function render(view) {
   topEl.replaceChildren();
   bottomEl.replaceChildren();
-  for (const slot of slots) {
+  for (const slot of view.slots) {
     const div = document.createElement('div');
     div.className = 'col';
     div.style.gridColumn = 'span ' + slot.span;
+    div.style.fontFamily = slot.font;
     div.innerHTML = '<p>' + slot.text + '</p>';
     slot.host.appendChild(div);
   }
+
+  view.identity.forEach((place, i) => {
+    idItems[i].style.gridColumn = place.column + ' / span 2';
+    idItems[i].style.gridRow = place.row;
+  });
+}
+
+// 폰트가 도착하기 전에 높이를 재면 대체 폰트 기준이라 화면 맞춤이 어긋난다.
+// 실제로 쓸 글자까지 넘겨서 필요한 조각을 모두 받아둔다.
+async function loadFonts(families) {
+  const sample = texts.join('');
+  await Promise.all(families.map(
+    family => document.fonts.load('13px ' + family, sample).catch(() => {})
+  ));
+  await document.fonts.ready;
 }
 
 // 글 길이가 매번 달라서 어떤 조합은 한 화면을 넘긴다.
 // 여러 번 그려보고 화면에 딱 들어차는 것을 고른다.
 // (컬럼이 세로로 쌓이는 좁은 화면에서는 한 화면에 담는 게 불가능하므로 그냥 한 번 그린다.)
-function layout() {
+function layout(plan) {
   if (matchMedia('(max-width: 900px)').matches) {
-    const slots = candidate();
-    render(slots);
-    return slots;
+    const view = candidate(plan);
+    render(view);
+    return view;
   }
 
   const available = innerHeight - 20 * 2;
   const wantedVoid = available * 0.2;
-  const minVoid = 60;
+  // 소개 세 줄이 들어가고도 위아래로 숨 쉴 자리가 남아야 한다.
+  const minVoid = 140;
   let best = null;
 
   for (let i = 0; i < 60; i++) {
-    const slots = candidate();
-    render(slots);
+    const view = candidate(plan);
+    render(view);
     const leftover = available
       - topEl.getBoundingClientRect().height
       - bottomEl.getBoundingClientRect().height;
@@ -180,29 +303,55 @@ function layout() {
       ? 1e6 + (minVoid - leftover)
       : Math.abs(leftover - wantedVoid);
 
-    if (!best || score < best.score) best = { slots, score };
+    if (!best || score < best.score) best = { view, score };
     if (best.score < available * 0.04) break;
   }
 
-  render(best.slots);
-  return best.slots;
+  render(best.view);
+  return best.view;
 }
 
-// 지나온 조합을 쌓아둔다. 오른쪽은 다음으로, 왼쪽은 왔던 길로.
-const history = [layout()];
-let cursor = 0;
+// 몇 번째 화면인지가 곧 폰트를 쓰는 방식이 된다.
+async function draw(index) {
+  const plan = fontPlan(index % 3, index === 0);
+  await loadFonts(plan.load);
+  return layout(plan);
+}
 
-addEventListener('keydown', event => {
-  if (event.key === 'ArrowRight') {
-    event.preventDefault();
-    cursor++;
-    // 되돌아온 적이 있으면 그때 봤던 것을 다시 보여주고, 아니면 새로 뽑는다.
-    if (cursor < history.length) render(history[cursor]);
-    else history.push(layout());
-  } else if (event.key === 'ArrowLeft') {
-    event.preventDefault();
+// 지나온 화면을 쌓아둔다. 오른쪽은 다음으로, 왼쪽은 왔던 길로.
+const history = [];
+let cursor = 0;
+let busy = true;
+
+draw(0).then(view => {
+  history.push(view);
+  busy = false;
+});
+
+addEventListener('keydown', async event => {
+  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+  event.preventDefault();
+  if (busy) return;
+
+  if (event.key === 'ArrowLeft') {
     if (cursor === 0) return;
     render(history[--cursor]);
+    return;
+  }
+
+  // 되돌아온 적이 있으면 그때 봤던 것을 다시 보여준다.
+  if (cursor + 1 < history.length) {
+    render(history[++cursor]);
+    return;
+  }
+
+  // 처음 가는 화면이면 폰트를 받아온 뒤에 그린다.
+  busy = true;
+  try {
+    history.push(await draw(history.length));
+    cursor = history.length - 1;
+  } finally {
+    busy = false;
   }
 });
 </script>
