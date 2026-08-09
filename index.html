@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>라용</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-dynamic-subset.css">
+<style>
+  :root {
+    --margin: 20px;
+    --gutter: 20px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: #fff;
+    color: #000;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif;
+    font-size: 13px;
+    line-height: 1.8;
+    word-break: break-word;
+  }
+
+  .page {
+    min-height: 100vh;
+    padding: var(--margin);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    column-gap: var(--gutter);
+  }
+
+  /* 위 뭉치는 위로 붙고, 아래 뭉치는 아래로 붙는다.
+     컬럼마다 글 길이가 달라서 생기는 들쭉날쭉한 경계가 가운데 빈 공간의 형태를 만든다. */
+  .top { align-items: start; }
+  .bottom { align-items: end; }
+
+  /* 빈 공간. 위아래 뭉치가 쓰고 남은 높이를 전부 가져간다. */
+  .void { flex: 1 0 60px; }
+
+  .col p { margin: 0; }
+
+  @media (max-width: 900px) {
+    .grid { grid-template-columns: 1fr; }
+    .col { grid-column: 1 !important; margin-bottom: 1.8em; }
+    .bottom { align-items: start; }
+    .void { flex: 0 0 12vh; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <section class="grid top" id="top"></section>
+
+  <div class="void"></div>
+
+  <section class="grid bottom" id="bottom"></section>
+</div>
+
+<!-- 글은 여기서 고치면 된다. <p> 하나가 글 하나.
+     순서는 상관없다 — 이 중 8~10편이 매번 랜덤으로 뽑힌다. -->
+<template id="texts">
+  <p>현재 내가 지향하는 일 태도는 '할 수 있는 일을 할 수 있는 만큼, 무리하지 말고, 너무 바쁘지 않게'다. 어찌 보면 기본소득을 받아야 가능할 수 있는 이 태도를 지금 해보고 있는데, 이건 소득만으로 해결되는 문제는 아닌 것 같다. 사람마다 다르겠지만 나는 회사라는 조직 안에서 이를 실현하기 어려워 프리랜서가 되었고, 프리랜서만 해서는 무리할 수밖에 없어서 다른 알바도 병행하고 있다. 여기에 한 가지 더 필요한 건 마음이다. 돈을 많이 벌지 않겠다는 마음..(농담이 아니다) 알바를 통한 고정비가 나에게 기본소득처럼 작용하고 있고, 그렇게 생긴 여유로 프리랜서 디자이너 일을 큰 부침 없이 하고 있다. 저 원칙을 지키려고 종종 밥줄 끊어지는 선택을 하고 있지만 아직까지는 괜찮다.</p>
+
+  <p>글을 쓸 때 퇴고를 여러 번 하는 것 처럼, 내가 한 일은 보면 볼수록 더 나아질 구석이 보이기 마련이다. 이건 디자인도 마찬가지여서, 한 번에 디자인을 끝내기보다는 여러 번 다시 보며 생각을 덧대는 것이 좋다. (물론 시간적 여유가 있어야 함) 디자인을 시간당 인건비로 계산한다면 3시간짜리 일을 하루 만에 끝내기보다는 한 시간씩 3일 동안 하는 것이 작업의 퀄리티나 스스로의 만족도 차원에서 좋다.</p>
+
+  <p>잘하는 건 모르겠고 계속하고 있다. 계속하다 보면 조금은 잘하게 되니까. 나 잘하나? 하는 마음으로 계속 계속 하는 중. 언제까지 디자인을 할 수 있을까. 언젠가는 내 디자인을 완벽히 학습한 ai에게 바톤을 넘겨야 할지도 모르고, 나를 찾는 사람이 아무도 없을 때. 지금도 그럴 때가 있긴 한데 기간을 정해야 할까. 한 6개월 연락이 없으면? 현실은 일주일만 일이 없어도 불안 불안. 신기하게 잠잠하다 싶으면 또 연락이 온다. 지금은 또 일이 많다. 디자이너니까 디자인을 해야지 라는 마음으로 디자인을 하고, 디자인을 하니까 디자이너지 싶고. 나를 믿고 디자인을 맡기는 사람이 있다면 묻지도 따지지도 않고 최선을 다해 디자인을 하겠다. 괜한 다짐도 하고. 작가가 되려면 어떻게 해야 하냐는 질문에 책상에 앉아 글을 쓰면 작가라는 말처럼 디자이너가 되려면 디자인을 하면 된다는 말도. 뭐든 단순하게. 눈 앞의 일을 하자.</p>
+
+  <p>누간가의 추천을 받았고, 이전 작업들도 살펴보았고, 작업에 대한 맥락도 충분히 나누었는데 막상 받은 초안이 마음에 들지 않는다면 어떻게 해야 할까. 내가 의도를 제대로 전달하지 못한 건지, 디자이너가 나의 요청을 이해하지 못한 건지, 이해는 했지만 디자이너의 해석이 별로인 건지, 원인은 여러 가지 일 수 있지만 어찌 되었든 초안이 너무 별로라면(극단적으로) 이래저래 복잡하다. 일반적으로 추가 시안을 요청할 경우 비용을 추가하면 되지만 그럴 경우 사전에 충분한 합의가 되어야 하고, 다음 시안에서 만족하는 것이 나와야 하니 서로 더 신경을 쓰게 된다. 무엇보다 상대에 대한 신뢰나 기대가 떨어진 상태에서 작업을 이어가는 일은 서로 힘들다. 그래서 나는 메일에 이런 문구를 종종 써보고 있다. "디자인 초안 단계에서 서로의 상이 너무 맞지 않을 경우 작업을 중단해도 괜찮습니다.(비용X)" 여기서 '비용X'는 '그럴 경우 초안에 대한 비용을 받지 않습니다'라는 말이다. 그래도 돈을 조금 받아야 하는 것 아니냐, 너무 손해 아니냐 물을 수 있는데 이 상황에서 돈을 조금이라도 받으려고 소통하는 것 혹은 끝까지 작업을 마치려고 하는 것 자체가 나에겐 더 손해라고 생각한다.</p>
+
+  <p>주에 4일은 공유오피스로 출근한다. 회사를 다니는 직장인처럼 이른 아침 첫차를 타고 출근길에 오른다. 나는 출근감(출근하는 감각)이라고 부르는데, 독립적으로 일하더라도 출근감을 유지하려고 애쓰는 편이다. 아침 일찍 나와 자리에 앉는 것, 어떤 부지런을 떠는 것이, 일을 위한 나름의 준비동작이 된 듯하다.<br>주 4일을 월화-목금, 월-수목금, 월화수-금 등 다양하게 시도해 보았는데 개인적으론 월화-목금이 가장 좋았다. 하루는 오랜만에 일하는 재미로, 남은 하루는 오늘까지만 힘내자는 마음으로 보낼 수 있다. 월금월금의 느낌이랄까. 주 4일제가 도입되고 수요일이 휴무가 된다면 월요병도 사라지고 모두가 조금 더 즐겁게 일할 것 같다.</p>
+
+  <p>디자인이 가능하냐는 질문을 종종 받는다. 회사를 다니지 않는, 그렇다고 대놓고 프리랜서도 아닌, 작업 분야나 별다른 견적표도 없는 내게 관심을 주는 고마운 사람들. 여러 조건을 따져보지만 속으론 이렇게 생각한다. 그럼요. 무엇이든 가능합니다. 문제는 당신의 마음이죠. 작업의 맥락과 시간이 주어진다면 나라는 필터를 거친 시각적 결과를 보여줄 수 있다. 문제는 그것을 당신이 쓸지 안 쓸지다. 디자인이 마음에 들지 않는다면 쓰지 않아도 되고 비용을 주지 않아도 된다. 일을 하고 돈을 받지 않는 것은 괜찮다. 내가 디자인으로 상대를 설득하지 못해서 상대의 설득대로 디자인하는 일은 피하고 싶다. 어찌 되었든 신뢰가 중요하다. 나를 믿는가. 나를 믿을 만한 과정과 결과를 보여주었는가. 그럴 수 있는 관계인가를 고민한다.</p>
+
+  <p>업무는 일을 마칠 때가 아니라 내가 한 일을 알릴 때 끝나는 거라고 했다. 회사에 속하지 않은 사람이라면 더더욱 그렇다. 내가 무슨 일을 하는지 사람들이 알아야 관련된 일이 꼬리를 물고 찾아오기 마련이다. 그런 맥락에서 SNS는 도파민 중독을 감내하더라도 꼭 활용해야 하는 도구다. 나는 블로그와 페이스북, 인스타그램을 하고 있지만 SNS를 그렇게 잘 활용하는 것 같진 않다. 정확히는 네트워킹, 연결의 목적으로 말이다. 내가 사용하는 서비스는 SNS 가 아닌 SAS(Social Archive Service)에 가깝다. 연결된다 보다는 기록한다는 마음으로 무언가를 올리고, 콘텐츠의 노출보다는 꾸준한 기록에 초점을 맞춘다. 가끔은 이런 기록이 어떤 연결을 만들기도 한다.</p>
+
+  <p>그만해야 할 때 그만두는 것을 응원하는 편이다. 그만두는 이유가 딱히 궁금하지도 않다. 예의상 이유를 묻기도 하지만 그 사람만의 고민이 있을 것이고 이를 오롯이 말로 전하긴 어려울 것이다. 최근 소통하던 실무자 분이 마음을 돌보고자 직을 그만두게 되었다며 송구하다는 메일을 보냈다. 아쉬움보다는 응원하고 싶은 마음이 먼저 들었고 그만두는 마음을 응원한다고 답장을 보냈다.</p>
+
+  <p>디자인 초안. 디자인을 의뢰한 클라이언트에게 처음 보여주는 시안. 완성본이 아닌 초기 컨셉을 보여주며 방향성을 확인하는 용도지만 그 중요성은 완성본 못지않다. 디자인 초안은 첫인상과 같아서 상대에서 신뢰 혹은 불안을 줄 수 있다. 전적인 믿음까지는 아니라도 처음부터 별로라는 인상을 준다면 이후의 작업 과정도 순탄치 않을 가능성이 높다. 때문에 디자인 초안에서부터 정확한 메시지를 전달해야 한다. 내가 이 작업에 최선을 다하고 있고, 이 정도의 디자인을 할 수 있다는 것을.. 그럼에도 신뢰를 얻지 못한다면 어쩔 수 없다.</p>
+
+  <p>어떤 대답은 모르는 것을 물어볼 수 없게, 모르는 채로 두게 한다. 여러 이유가 있겠지만 대답의 온도 때문인 경우가 종종 있다. 같은 의도의 말이라도 유독 날 선 말들. 누군가와 함께 일한다면 모르는 것을 물어볼 수 있는 관계를 잘 유지해야 한다. 혼내고 혼나는 관계가 되면 물어볼 수 없다.</p>
+
+  <p>디자인 수정사항은 맥락을 함께 전달하는 게 좋다. '여기 글씨를 더 크게 해주세요' 라는 요청보다는 '대상이 연령대가 있으니, 글씨가 더 잘 보이면 좋겠습니다. 디자인을 해치지 않는 선에서 가장 잘 보이게 부탁드려요.'와 같은 제안이 좋다. 별 다른 이유가 없어도 디자이너는 요청 너머의 맥락을 생각하지만, 가끔 이 생각을 멈추게 하는 경우가 있다. 맥락 없는 소통을 하고 있다면, 그리 좋은 협업 관계는 아니다.</p>
+
+  <p>일 제안을 받게 되면 작업범위, 견적비용, 작업기간, 소통방식등을 정리해서 제안한다. 나는 이런 방식으로 일하고, 이 정도 범위의 일을 이 기간 동안 이 비용으로 진행할 수 있는데 괜찮은지 묻는다. 개 중에 가장 중요한 요소를 꼽자면 소통 방식인데, 내가 제안하는 것은 매번 비슷하다. '어느 정도 권한이 있는 담당자 1인과 이메일로 소통합니다.' 어느 정도 권한이 있다는 말은 조직 내부의 다양한 의견을 본인 선에서 정리할 수 있다는 말이다. 어떤 결정권자가 있어서 그 사람의 말을 전달만 하는 중간 담당자와 소통하고 싶지 않다는 의미이고 직원을 그런 수동적인 역할로 부리는 조직과는 일하고 싶지 않다는 말이기도 하다. 이메일을 사용하는 이유는 기록이 잘 남고, 한번 더 정제된 생각을 주고받고, 즉답을 하지 않는 비동기 방식의 소통이 가능하기 때문이다.</p>
+
+  <p>일에서 가장 중요한 것은 관계다. 너와 내가 서로를 얼마나 이해하고 예상하는지, 그래서 얼마큼 믿고 있는지. 그런 것들이 중요하다. 상대의 기대를 파악하는 것만큼 나의 기대를 상대에게 알려주는 것도 중요하고.. 그런 과정 속에서 서로의 생각과 행동을 계속 맞춰나가는 것이 중요하다.</p>
+</template>
+
+<script>
+// 12컬럼을 2와 4로 쪼갠 조합을 하나 만든다. 2:2:4:2:2, 2:4:2:4, 4:4:2:2 ...
+// 2만 있거나 4만 있는 밋밋한 조합은 다시 뽑는다.
+function composition() {
+  let parts;
+  for (let tries = 0; tries < 20; tries++) {
+    parts = [];
+    let left = 12;
+    while (left > 0) {
+      const size = left >= 4 && Math.random() < 0.5 ? 4 : 2;
+      parts.push(size);
+      left -= size;
+    }
+    if (parts.includes(2) && parts.includes(4)) break;
+  }
+  return parts;
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+const texts = [...document.getElementById('texts').content.querySelectorAll('p')]
+  .map(p => p.innerHTML);
+
+const topEl = document.getElementById('top');
+const bottomEl = document.getElementById('bottom');
+
+// 컬럼 하나에 글 하나. 2와 4를 섞은 조합은 언제나 4칸 아니면 5칸이라
+// 위아래 합쳐 8~10편이 뽑힌다.
+function candidate() {
+  const slots = [
+    ...composition().map(span => ({ span, host: topEl })),
+    ...composition().map(span => ({ span, host: bottomEl }))
+  ];
+
+  // 어느 글이 어느 폭에 앉을지는 정하지 않는다.
+  // 긴 글이 좁은 컬럼에 걸려 길게 뻗는 것이 들쭉날쭉한 경계를 만든다.
+  shuffle([...texts]).slice(0, slots.length)
+    .forEach((text, i) => { slots[i].text = text; });
+
+  return slots;
+}
+
+function render(slots) {
+  topEl.replaceChildren();
+  bottomEl.replaceChildren();
+  for (const slot of slots) {
+    const div = document.createElement('div');
+    div.className = 'col';
+    div.style.gridColumn = 'span ' + slot.span;
+    div.innerHTML = '<p>' + slot.text + '</p>';
+    slot.host.appendChild(div);
+  }
+}
+
+// 글 길이가 매번 달라서 어떤 조합은 한 화면을 넘긴다.
+// 여러 번 그려보고 화면에 딱 들어차는 것을 고른다.
+// (컬럼이 세로로 쌓이는 좁은 화면에서는 한 화면에 담는 게 불가능하므로 그냥 한 번 그린다.)
+function layout() {
+  if (matchMedia('(max-width: 900px)').matches) {
+    const slots = candidate();
+    render(slots);
+    return slots;
+  }
+
+  const available = innerHeight - 20 * 2;
+  const wantedVoid = available * 0.2;
+  const minVoid = 60;
+  let best = null;
+
+  for (let i = 0; i < 60; i++) {
+    const slots = candidate();
+    render(slots);
+    const leftover = available
+      - topEl.getBoundingClientRect().height
+      - bottomEl.getBoundingClientRect().height;
+    // 넘치는 조합은 크게 감점하고, 그 중에서도 덜 넘치는 쪽을 남긴다.
+    const score = leftover < minVoid
+      ? 1e6 + (minVoid - leftover)
+      : Math.abs(leftover - wantedVoid);
+
+    if (!best || score < best.score) best = { slots, score };
+    if (best.score < available * 0.04) break;
+  }
+
+  render(best.slots);
+  return best.slots;
+}
+
+// 지나온 조합을 쌓아둔다. 오른쪽은 다음으로, 왼쪽은 왔던 길로.
+const history = [layout()];
+let cursor = 0;
+
+addEventListener('keydown', event => {
+  if (event.key === 'ArrowRight') {
+    event.preventDefault();
+    cursor++;
+    // 되돌아온 적이 있으면 그때 봤던 것을 다시 보여주고, 아니면 새로 뽑는다.
+    if (cursor < history.length) render(history[cursor]);
+    else history.push(layout());
+  } else if (event.key === 'ArrowLeft') {
+    event.preventDefault();
+    if (cursor === 0) return;
+    render(history[--cursor]);
+  }
+});
+</script>
+
+</body>
+</html>
