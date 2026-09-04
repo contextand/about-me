@@ -66,17 +66,22 @@
   .bottom { align-items: end; }
 
   /* 빈 공간. 위아래 뭉치가 쓰고 남은 높이를 전부 가져간다.
-     본문과 같은 12컬럼 위에, 높이를 6등분한 줄을 얹어 소개 네 조각을 흩는다. */
+     본문과 같은 12컬럼 위에 소개 한 덩어리를 얹는다.
+     세로 자리는 덩어리 위아래 빈 줄의 비율로 정한다(JS가 매번 다시 잡는다).
+     단락과 바로 붙지 않게 하는 최소 간격은 padding이 맡는다. 이걸 행의
+     minmax로 주면 최솟값에 걸릴 때 fr 재분배가 틀어져 행이 늘어난다. */
   .void {
     flex: 1 0 140px;
     display: grid;
     grid-template-columns: repeat(12, 1fr);
-    grid-template-rows: repeat(6, 1fr);
+    grid-template-rows: 1fr auto 1fr;
     column-gap: var(--gutter);
-    align-items: start;
+    padding: 20px 0;
     position: relative;
     z-index: 1;
   }
+
+  .identity { grid-row: 2; }
 
   .col p { margin: 0; }
   .col:hover { text-decoration: underline; }
@@ -105,12 +110,14 @@
 
   <section class="grid top" id="top"></section>
 
-  <!-- 네 조각이 각자 따로 놓인다. -->
   <div class="void">
-    <div class="id-item">라용</div>
-    <div class="id-item">그래픽 디자이너</div>
-    <a class="id-item" href="https://blog.naver.com/skdyds" target="_blank" rel="noopener">네이버 블로그</a>
-    <a class="id-item" href="https://www.instagram.com/skdyds/" target="_blank" rel="noopener">인스타그램</a>
+    <!-- 네 줄이 한 덩어리로 움직인다. -->
+    <div class="identity" id="identity">
+      <div class="id-item">라용</div>
+      <div class="id-item">그래픽 디자이너</div>
+      <a class="id-item" href="https://blog.naver.com/skdyds" target="_blank" rel="noopener">네이버 블로그</a>
+      <a class="id-item" href="https://www.instagram.com/skdyds/" target="_blank" rel="noopener">인스타그램</a>
+    </div>
   </div>
 
   <section class="grid bottom" id="bottom"></section>
@@ -196,25 +203,17 @@ function candidate() {
   return { slots, identity: scatter() };
 }
 
-// 소개 네 조각의 자리. 두 칸짜리 넷을 12칸에 놓고 남는 네 칸을
-// 다섯 틈에 무작위로 나눈다. 가로로 겹칠 일이 없다.
-// 줄은 여백을 6등분한 것 중 가운데 넷(2~5)에서만 고른다. 조각마다 따로 정한다.
-// 맨 위아래 줄을 비워 두어야 소개가 단락에 바로 붙어 문장의 일부처럼 읽히지 않는다.
+// 소개 덩어리의 자리. 가로는 두 칸 폭이 들어갈 수 있는 열 중 아무 데나,
+// 세로는 덩어리 위아래로 남는 빈 자리를 무작위 비율로 나눠 정한다.
 function scatter() {
-  const gaps = [0, 0, 0, 0, 0];
-  for (let i = 0; i < 4; i++) gaps[Math.floor(Math.random() * 5)]++;
-
-  const places = [];
-  let column = 1;
-  for (let i = 0; i < 4; i++) {
-    column += gaps[i];
-    places.push({ column, row: 2 + Math.floor(Math.random() * 4) });
-    column += 2;
-  }
-  return places;
+  return {
+    column: 1 + Math.floor(Math.random() * 11),
+    above: Math.random()
+  };
 }
 
-const idItems = [...document.querySelectorAll('.id-item')];
+const voidEl = document.querySelector('.void');
+const identityEl = document.getElementById('identity');
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 // 글 상자보다 이만큼 넉넉하게 뚫는다.
@@ -288,10 +287,9 @@ function render(view) {
     slot.host.appendChild(div);
   }
 
-  view.identity.forEach((place, i) => {
-    idItems[i].style.gridColumn = place.column + ' / span 2';
-    idItems[i].style.gridRow = place.row;
-  });
+  const { column, above } = view.identity;
+  identityEl.style.gridColumn = column + ' / span 2';
+  voidEl.style.gridTemplateRows = `${above}fr auto ${1 - above}fr`;
 }
 
 // 폰트가 도착하기 전에 높이를 재면 대체 폰트 기준이라 화면 맞춤이 어긋난다.
@@ -313,7 +311,7 @@ function layout() {
 
   const available = innerHeight - 20 * 2;
   const wantedVoid = available * 0.2;
-  // 소개 세 줄이 들어가고도 위아래로 숨 쉴 자리가 남아야 한다.
+  // 소개 네 줄(약 94px)이 들어가고도 위아래로 20px씩 숨 쉴 자리가 남아야 한다.
   const minVoid = 140;
   let best = null;
 
