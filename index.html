@@ -111,10 +111,9 @@
   <section class="grid top" id="top"></section>
 
   <div class="void">
-    <!-- 네 줄이 한 덩어리로 움직인다. -->
+    <!-- 세 줄이 한 덩어리로 움직인다. -->
     <div class="identity" id="identity">
       <div class="id-item">라용</div>
-      <div class="id-item">그래픽 디자이너</div>
       <a class="id-item" href="https://blog.naver.com/skdyds" target="_blank" rel="noopener">네이버 블로그</a>
       <a class="id-item" href="https://www.instagram.com/skdyds/" target="_blank" rel="noopener">인스타그램</a>
     </div>
@@ -203,6 +202,14 @@ function candidate() {
   return { slots, identity: scatter() };
 }
 
+// 소개 세 줄을 맞추는 쪽. 화면을 넘길 때마다 좌우를 번갈아 간다.
+const ALIGNS = ['left', 'right'];
+let alignIndex = 0;
+
+function nextAlign() {
+  return ALIGNS[alignIndex++ % ALIGNS.length];
+}
+
 // 소개 덩어리의 자리. 가로는 두 칸 폭이 들어갈 수 있는 열 중 아무 데나,
 // 세로는 덩어리 위아래로 남는 빈 자리를 무작위 비율로 나눠 정한다.
 function scatter() {
@@ -287,8 +294,9 @@ function render(view) {
     slot.host.appendChild(div);
   }
 
-  const { column, above } = view.identity;
+  const { column, above, align } = view.identity;
   identityEl.style.gridColumn = column + ' / span 2';
+  identityEl.style.textAlign = align;
   voidEl.style.gridTemplateRows = `${above}fr auto ${1 - above}fr`;
 }
 
@@ -303,20 +311,26 @@ async function loadFont() {
 // 여러 번 그려보고 화면에 딱 들어차는 것을 고른다.
 // (컬럼이 세로로 쌓이는 좁은 화면에서는 한 화면에 담는 게 불가능하므로 그냥 한 번 그린다.)
 function layout() {
+  // 아래 후보 탐색이 candidate()를 수십 번 부르므로, 정렬은 여기서 한 번만 정해
+  // 후보마다 찍어 준다. scatter() 안에서 번갈아 가면 후보 수만큼 넘어가 버린다.
+  const align = nextAlign();
+
   if (matchMedia('(max-width: 900px)').matches) {
     const view = candidate();
+    view.identity.align = align;
     render(view);
     return view;
   }
 
   const available = innerHeight - 20 * 2;
   const wantedVoid = available * 0.2;
-  // 소개 네 줄(약 94px)이 들어가고도 위아래로 20px씩 숨 쉴 자리가 남아야 한다.
+  // 소개 세 줄(약 70px)이 들어가고도 위아래로 20px씩 숨 쉴 자리가 남아야 한다.
   const minVoid = 140;
   let best = null;
 
   for (let i = 0; i < 60; i++) {
     const view = candidate();
+    view.identity.align = align;
     render(view);
     const leftover = available
       - topEl.getBoundingClientRect().height
