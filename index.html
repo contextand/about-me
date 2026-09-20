@@ -15,10 +15,15 @@
 
   * { box-sizing: border-box; }
 
+  /* 트랙패드 좌우 쓸기를 브라우저가 뒤로/앞으로 가기로 가로채지 않게 한다. */
+  html { overscroll-behavior-x: none; }
+
   body {
     margin: 0;
     background: #fff;
     color: #000;
+    /* 진짜 커서는 숨기고 #cursor를 대신 그린다. CSS cursor 속성은 애니메이션이 안 된다. */
+    cursor: none;
     font-family: "Wanted Sans", sans-serif;
     font-size: 13px;
     font-weight: 500;
@@ -84,9 +89,38 @@
   .identity { grid-row: 2; }
 
   .col p { margin: 0; }
+  /* 글을 긁으면 지금 맨 위에 깔린 판과 같은 색으로 칠한다. */
+  .col::selection, .col ::selection { background: var(--sheet, #ffde59); }
 
   .id-item { color: inherit; text-decoration: none; display: block; }
   .id-item[href]:hover { text-decoration: underline; }
+
+  /* 마우스를 따라다니는 화살표. 포인터 자리가 화살표 한가운데에 오도록 margin으로 당긴다. */
+  #cursor {
+    position: fixed;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0;
+  }
+  #cursor.on { opacity: 1; }
+  #cursor svg {
+    display: block;
+    margin: -8px 0 0 -11.5px;
+    transition: transform 0.35s ease;
+  }
+
+  /* 단락 위에서는 그 뭉치가 있는 쪽으로 돌아서고, 촉이 사라져 작대기만 남는다.
+     여기선 눌러도 넘어가지 않는다. */
+  body:has(#top .col:hover) #cursor svg { transform: rotate(-90deg); }
+  body:has(#bottom .col:hover) #cursor svg { transform: rotate(90deg); }
+  #cursor .head { transition: opacity 0.35s ease; }
+  body:has(.col:hover) #cursor .head { opacity: 0; }
+
+  /* 링크 위에서는 화살표를 감추고 손가락 커서를 쓴다. */
+  .id-item[href] { cursor: pointer; }
+  body:has(.id-item[href]:hover) #cursor.on { opacity: 0; }
 
   /* 좁아지면 컬럼이 좁아져 글이 길게 늘어나 한 화면을 넘긴다. 한 단계만 줄인다. */
   @media (max-width: 1399px) {
@@ -119,6 +153,15 @@
   </div>
 
   <section class="grid bottom" id="bottom"></section>
+</div>
+
+<div id="cursor" aria-hidden="true">
+  <svg width="23" height="16" viewBox="0 0 46 32">
+    <g fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 16h26"/>
+      <path class="head" d="M32 8l8 8-8 8"/>
+    </g>
+  </svg>
 </div>
 
 <!-- 글은 여기서 고치면 된다. <p> 하나가 글 하나.
@@ -270,7 +313,11 @@ function addBackgroundLayer() {
     ));
   }
 
-  const sheet = svgRect(0, 0, width, height, sheetColor());
+  const color = sheetColor();
+  // 글을 긁을 때 쓸 색. 언제나 맨 위 판과 같은 색이 된다.
+  document.documentElement.style.setProperty('--sheet', color);
+
+  const sheet = svgRect(0, 0, width, height, color);
   sheet.setAttribute('mask', 'url(#' + maskId + ')');
 
   const svg = document.createElementNS(SVG_NS, 'svg');
@@ -353,41 +400,69 @@ async function draw() {
   return layout();
 }
 
-// 지나온 화면을 쌓아둔다. 오른쪽은 다음으로, 왼쪽은 왔던 길로.
-const history = [];
-let cursor = 0;
+// 오른쪽으로만 간다. 지나온 화면은 남기지 않고 넘길 때마다 새로 그린다.
 let busy = true;
 
-draw().then(view => {
-  history.push(view);
-  busy = false;
-});
+draw().then(() => { busy = false; });
 
-addEventListener('keydown', async event => {
-  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-  event.preventDefault();
+async function next() {
   if (busy) return;
-
-  if (event.key === 'ArrowLeft') {
-    if (cursor === 0) return;
-    render(history[--cursor]);
-    return;
-  }
-
-  // 되돌아온 적이 있으면 그때 봤던 것을 다시 보여준다.
-  if (cursor + 1 < history.length) {
-    render(history[++cursor]);
-    return;
-  }
-
-  // 처음 가는 화면이면 폰트를 받아온 뒤에 그린다.
   busy = true;
   try {
-    history.push(await draw());
-    cursor = history.length - 1;
+    await draw();
   } finally {
     busy = false;
   }
+}
+
+addEventListener('keydown', event => {
+  if (event.key !== 'ArrowRight') return;
+  event.preventDefault();
+  next();
+});
+
+// 트랙패드 오른쪽 쓸기. 한 번 쓸어도 관성까지 wheel 이벤트가 수십 번 들어오므로,
+// 문턱을 넘으면 한 번만 넘기고 이벤트가 끊길 때까지 잠가 둔다.
+const SWIPE_THRESHOLD = 60;
+const SWIPE_IDLE = 150;
+let swipeAccum = 0;
+let swipeLocked = false;
+let swipeIdle;
+
+addEventListener('wheel', event => {
+  // 세로로 더 많이 움직였으면 그냥 스크롤이다.
+  if (Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+  event.preventDefault();   // 브라우저의 뒤로/앞으로 쓸기도 같이 막힌다
+
+  clearTimeout(swipeIdle);
+  swipeIdle = setTimeout(() => { swipeAccum = 0; swipeLocked = false; }, SWIPE_IDLE);
+
+  if (swipeLocked) return;
+  swipeAccum += event.deltaX;
+  // 왼쪽으로 쓸면 음수라 문턱을 넘지 못한다. 되돌아가지 않는다.
+  if (swipeAccum < SWIPE_THRESHOLD) return;
+
+  swipeLocked = true;
+  next();
+  swipeAccum = 0;
+}, { passive: false });
+
+// 빈 자리를 누르면 다음 화면으로. 글 위는 그대로 둬서 읽고 긁어가는 데 방해하지 않는다.
+addEventListener('click', event => {
+  if (event.target.closest('a, .col, .id-item')) return;
+  next();
+});
+
+// 화살표를 마우스에 붙인다. 창 밖으로 나가면 감춘다.
+const cursorEl = document.getElementById('cursor');
+
+addEventListener('mousemove', event => {
+  cursorEl.style.transform = `translate(${event.clientX}px, ${event.clientY}px)`;
+  cursorEl.classList.add('on');
+}, { passive: true });
+
+addEventListener('mouseout', event => {
+  if (!event.relatedTarget) cursorEl.classList.remove('on');
 });
 </script>
 
