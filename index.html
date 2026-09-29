@@ -131,13 +131,10 @@
      폭은 JS가 12칸을 다 쓰게 준다. 카드가 화면을 꽉 채워 흰 틈이 없도록
      바깥 여백과 카드 사이 간격을 모두 없애고, 숨 쉴 자리는 카드 안쪽에 둔다. */
   @media (max-width: 900px) {
+    body { font-size: 15px; }
     .page { padding: 0; }
     .grid { align-items: start; row-gap: 0; }
     .col { padding: 18px 20px; }
-
-    /* 글이 짧아 한 화면을 못 채우는 판이 나온다. 그때 맨 아래가 희게
-       남지 않도록 아래 뭉치가 남는 높이를 가져가고 카드가 늘어난다. */
-    .bottom { align-items: stretch; flex: 1; }
 
     /* 소개 헤더는 좁은 화면에서 감춘다. */
     .void { display: none; }
@@ -220,9 +217,8 @@ function composition() {
   return parts;
 }
 
-// 모바일은 한 단. 12칸을 다 쓰는 덩어리를 차곡차곡 쌓는다.
-function mobileComposition() {
-  const count = 2 + Math.floor(Math.random() * 2);   // 한 뭉치에 2~3덩어리
+// 모바일은 한 단. 12칸을 다 쓰는 덩어리를 받은 수만큼 쌓는다.
+function mobileComposition(count) {
   return Array.from({ length: count }, () => 12);
 }
 
@@ -245,12 +241,13 @@ const BODY_FONT = '"Wanted Sans"';
 const isMobile = () => matchMedia('(max-width: 900px)').matches;
 
 // 컬럼 하나에 글 하나. 2와 4를 섞은 조합은 언제나 4칸 아니면 5칸이라
-// 위아래 합쳐 8~10편이 뽑힌다. 모바일은 한 단으로 4~6편.
+// 위아래 합쳐 8~10편이 뽑힌다. 모바일은 한 단으로 글 전부를 반씩 나눠 쌓는다.
 function candidate() {
   const mobile = isMobile();
-  const parts = host => (mobile ? mobileComposition() : composition())
+  const half = Math.ceil(texts.length / 2);
+  const parts = (host, count) => (mobile ? mobileComposition(count) : composition())
     .map(span => ({ span, host }));
-  const slots = [...parts(topEl), ...parts(bottomEl)];
+  const slots = [...parts(topEl, half), ...parts(bottomEl, texts.length - half)];
 
   // 어느 글이 어느 폭에 앉을지는 정하지 않는다.
   // 긴 글이 좁은 컬럼에 걸려 길게 뻗는 것이 들쭉날쭉한 경계를 만든다.
