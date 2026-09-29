@@ -127,35 +127,20 @@
     body { font-size: 12px; }
   }
 
-  /* 좁은 화면. 글은 한 단으로 쌓고, 가운데 빈 자리가 넉넉하지 않으니
-     색 판 대신 덩어리마다 바탕색을 깐다. 폭은 JS가 12칸을 다 쓰게 준다. */
+  /* 좁은 화면. 글은 한 단으로 쌓고, 색 판 대신 덩어리마다 바탕색을 깐다.
+     폭은 JS가 12칸을 다 쓰게 준다. 카드가 화면을 꽉 채워 흰 틈이 없도록
+     바깥 여백과 카드 사이 간격을 모두 없애고, 숨 쉴 자리는 카드 안쪽에 둔다. */
   @media (max-width: 900px) {
-    .grid { align-items: start; row-gap: 32px; }
-    .bottom { align-items: start; }
-    .col { padding: 14px 15px; }
+    .page { padding: 0; }
+    .grid { align-items: start; row-gap: 0; }
+    .col { padding: 18px 20px; }
 
-    /* 소개는 맨 위에 붙박아 두고 좌·가운데·우로 벌린다.
-       흐름에서 빠지므로 .page 위쪽에 그만큼 자리를 비워 둔다. */
-    .void {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 5;
-      display: block;
-      margin: 0;
-      padding: 13px 20px;
-      background: #fff;
-    }
-    /* 셋으로 반듯하게 쪼개 좌·가운데·우로 맞춘다. space-between으로는
-       가운데 항목이 제 폭만큼 밀려 진짜 중앙에 안 선다.
-       칸마다 정렬을 따로 주는 건 JS가 #identity에 걸어 두는
-       text-align(좌/우 번갈이)이 여기까지 따라오기 때문이다. */
-    .identity { display: grid; grid-template-columns: repeat(3, 1fr); }
-    .identity > :nth-child(1) { text-align: left; }
-    .identity > :nth-child(2) { text-align: center; }
-    .identity > :nth-child(3) { text-align: right; }
-    .page { padding-top: 60px; }
+    /* 글이 짧아 한 화면을 못 채우는 판이 나온다. 그때 맨 아래가 희게
+       남지 않도록 아래 뭉치가 남는 높이를 가져가고 카드가 늘어난다. */
+    .bottom { align-items: stretch; flex: 1; }
+
+    /* 소개 헤더는 좁은 화면에서 감춘다. */
+    .void { display: none; }
   }
 </style>
 </head>
@@ -487,7 +472,9 @@ addEventListener('wheel', event => {
 }, { passive: false });
 
 // 빈 자리를 누르면 다음 화면으로. 글 위는 그대로 둬서 읽고 긁어가는 데 방해하지 않는다.
+// 모바일은 카드가 화면을 꽉 채우므로 넘기는 장치를 두지 않는다. 스크롤해서 읽는다.
 addEventListener('click', event => {
+  if (isMobile()) return;
   if (event.target.closest('a, .col, .id-item')) return;
   next();
 });
