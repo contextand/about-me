@@ -154,23 +154,21 @@
       touch-action: pan-y;
       cursor: ew-resize;
     }
-    .row > .col:first-child { flex: 0 0 var(--split, 50%); }
+    .row > .col:first-child { flex: 0 0 calc(var(--split, 0.5) * 100%); }
     .row > .col:nth-child(2) { flex: 1; }
     .row.wide > .col { flex: 1; }
     .row.wide { cursor: auto; }
     /* 끄는 동안에는 글이 선택되지 않게 */
     .row.dragging { user-select: none; }
 
-    /* 경계를 보여 주기만 한다. 잡는 일은 줄이 맡으므로 지나가게 둔다. */
-    .bar {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: var(--split, 50%);
-      width: 2px;
-      margin-left: -1px;
-      background: #fff;
-      pointer-events: none;
+    /* 색과 글이 반대로 움직인다. 글줄을 제 칸이 아니라 '맞은편 칸의 폭'으로
+       가두면, 넓어진 쪽일수록 글이 좁아지고 색만 남는 면이 커진다.
+       좁아진 쪽은 제 칸이 더 좁으니 가둠이 걸리지 않아 그대로 꽉 찬다. */
+    .row:not(.wide) > .col:first-child p {
+      max-width: calc((1 - var(--split, 0.5)) * 100vw);
+    }
+    .row:not(.wide) > .col:nth-child(2) p {
+      max-width: calc(var(--split, 0.5) * 100vw);
     }
   }
 </style>
@@ -428,7 +426,7 @@ function dragToSplit(row) {
     }
     const width = row.getBoundingClientRect().width;
     const x = Math.min(width - SPLIT_MIN_PX, Math.max(SPLIT_MIN_PX, startPx + dx));
-    row.style.setProperty('--split', x / width * 100 + '%');
+    row.style.setProperty('--split', x / width);   // 비율. calc()에서 바로 쓴다.
   });
 
   const stop = () => {
@@ -440,8 +438,8 @@ function dragToSplit(row) {
   row.addEventListener('pointercancel', stop);
 }
 
-// 모바일은 두 장씩 한 줄로 묶고 그 사이에 바를 끼운다.
-// 짝이 안 맞는 하나(span 2)는 한 줄을 통째로 쓰고 바가 없다.
+// 모바일은 두 장씩 한 줄로 묶는다. 색끼리 바로 맞붙어 경계선은 따로 두지 않는다.
+// 짝이 안 맞는 하나(span 2)는 한 줄을 통째로 쓴다.
 function renderRows(slots, host) {
   let row = null;
   for (const slot of slots) {
@@ -460,9 +458,7 @@ function renderRows(slots, host) {
       dragToSplit(row);
       host.appendChild(row);
     } else {
-      const bar = document.createElement('div');
-      bar.className = 'bar';
-      row.append(card(slot), bar);
+      row.appendChild(card(slot));
       row = null;
     }
   }
