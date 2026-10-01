@@ -88,6 +88,9 @@
 
   .identity { grid-row: 2; }
 
+  /* 두 단 사이 바는 좁은 화면에서만 나온다. */
+  #split { display: none; }
+
   .col p { margin: 0; }
   /* 글을 긁으면 지금 맨 위에 깔린 판과 같은 색으로 칠한다. */
   .col::selection, .col ::selection { background: var(--sheet, #ffde59); }
@@ -137,11 +140,42 @@
     body { font-size: 15px; }
     .page { padding: 0; }
     .grid, .bottom { align-items: stretch; }
-    .grid { row-gap: 0; column-gap: 0; }
+    /* 두 칸으로 쪼개되 경계를 --split이 쥔다. 바를 끌면 이 값이 바뀐다. */
+    .grid {
+      grid-template-columns: var(--split, 50%) 1fr;
+      row-gap: 0;
+      column-gap: 0;
+    }
     .col { padding: 14px 12px; }
 
     /* 소개 헤더는 좁은 화면에서 감춘다. */
     .void { display: none; }
+
+    /* 두 단 사이를 가르는 바. 눈에는 가는 선이지만 손으로 잡을 자리는
+       넓게 둔다. touch-action: pan-y 라서 세로 스크롤은 그대로 먹고
+       가로로 끄는 움직임만 이쪽이 받는다. */
+    #split {
+      display: block;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: var(--split, 50%);
+      width: 28px;
+      margin-left: -14px;
+      z-index: 6;
+      touch-action: pan-y;
+      cursor: ew-resize;
+    }
+    #split::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 2px;
+      margin-left: -1px;
+      background: #fff;
+    }
   }
 </style>
 </head>
@@ -163,6 +197,8 @@
 
   <section class="grid bottom" id="bottom"></section>
 </div>
+
+<div id="split" aria-hidden="true"></div>
 
 <div id="cursor" aria-hidden="true">
   <svg width="23" height="16" viewBox="0 0 46 32">
@@ -221,11 +257,11 @@ function composition() {
   return parts;
 }
 
-// 모바일은 두 단. 반칸(6)짜리를 나란히 쌓는다.
-// 짝이 안 맞는 마지막 하나는 두 단을 다 써서 옆자리가 비지 않게 한다.
+// 모바일은 두 단. 한 칸짜리를 나란히 쌓는다.
+// 짝이 안 맞는 마지막 하나는 두 칸을 다 써서 옆자리가 비지 않게 한다.
 function mobileComposition(count) {
   return Array.from({ length: count }, (_, i) =>
-    i === count - 1 && count % 2 ? 12 : 6);
+    i === count - 1 && count % 2 ? 2 : 1);
 }
 
 function shuffle(arr) {
@@ -480,6 +516,23 @@ addEventListener('click', event => {
   if (isMobile()) return;
   if (event.target.closest('a, .col, .id-item')) return;
   next();
+});
+
+// 두 단 사이 바를 끌어 좌우 폭을 바꾼다. 좁은 화면에만 보이는 장치다.
+const splitEl = document.getElementById('split');
+// 한 칸이 가질 수 있는 가장 좁은 폭. 비율로 막으면 화면이 넓을수록 느슨해지고,
+// 좁은 폰에서는 글줄이 두세 자까지 줄어 읽을 수 없게 된다.
+const SPLIT_MIN_PX = 120;
+
+splitEl.addEventListener('pointerdown', event => {
+  splitEl.setPointerCapture(event.pointerId);
+  event.preventDefault();          // 끄는 동안 글이 선택되지 않게
+});
+
+splitEl.addEventListener('pointermove', event => {
+  if (!splitEl.hasPointerCapture(event.pointerId)) return;
+  const x = Math.min(innerWidth - SPLIT_MIN_PX, Math.max(SPLIT_MIN_PX, event.clientX));
+  document.documentElement.style.setProperty('--split', x / innerWidth * 100 + '%');
 });
 
 // 화살표를 마우스에 붙인다. 창 밖으로 나가면 감춘다.
