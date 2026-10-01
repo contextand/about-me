@@ -145,34 +145,32 @@
     .void { display: none; }
 
     /* 두 장이 한 줄. 경계는 그 줄의 --split이 쥐므로 줄마다 따로 논다.
-       키는 flex가 알아서 맞춰 짧은 쪽 아래가 희게 남지 않는다. */
-    .row { display: flex; position: relative; }
+       키는 flex가 알아서 맞춰 짧은 쪽 아래가 희게 남지 않는다.
+       줄 어디를 잡아도 끌 수 있다. touch-action: pan-y 라서 세로로 쓸면
+       스크롤이 그대로 먹고, 가로로 끄는 움직임만 이쪽이 받는다. */
+    .row {
+      display: flex;
+      position: relative;
+      touch-action: pan-y;
+      cursor: ew-resize;
+    }
     .row > .col:first-child { flex: 0 0 var(--split, 50%); }
     .row > .col:nth-child(2) { flex: 1; }
     .row.wide > .col { flex: 1; }
+    .row.wide { cursor: auto; }
+    /* 끄는 동안에는 글이 선택되지 않게 */
+    .row.dragging { user-select: none; }
 
-    /* 눈에는 가는 선이지만 손으로 잡을 자리는 넓게 둔다.
-       touch-action: pan-y 라서 세로 스크롤은 그대로 먹고
-       가로로 끄는 움직임만 이쪽이 받는다. */
+    /* 경계를 보여 주기만 한다. 잡는 일은 줄이 맡으므로 지나가게 둔다. */
     .bar {
       position: absolute;
       top: 0;
       bottom: 0;
       left: var(--split, 50%);
-      width: 28px;
-      margin-left: -14px;
-      touch-action: pan-y;
-      cursor: ew-resize;
-    }
-    .bar::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 50%;
       width: 2px;
       margin-left: -1px;
       background: #fff;
+      pointer-events: none;
     }
   }
 </style>
@@ -278,18 +276,24 @@ const BODY_FONT = '"Wanted Sans"';
 
 const isMobile = () => matchMedia('(max-width: 900px)').matches;
 
+// 소개도 모바일에서는 한 덩어리로 끼운다. 소개 헤더를 감춘 자리를 메우고,
+// 글 수를 짝수로 맞춰 한 줄이 통째로 남는 일도 없앤다.
+const INTRO = '라용<br>그래픽 디자이너';
+
 // 컬럼 하나에 글 하나. 2와 4를 섞은 조합은 언제나 4칸 아니면 5칸이라
-// 위아래 합쳐 8~10편이 뽑힌다. 모바일은 두 단으로 글 전부를 반씩 나눠 쌓는다.
+// 위아래 합쳐 8~10편이 뽑힌다. 모바일은 두 단으로 전부를 반씩 나눠 쌓는다.
 function candidate() {
   const mobile = isMobile();
-  const half = Math.ceil(texts.length / 2);
+  const pool = mobile ? [...texts, INTRO] : texts;
+  // 위아래 모두 짝수로 떨어뜨려야 두 장씩 깔끔하게 짝이 맞는다.
+  const half = Math.round(pool.length / 4) * 2;
   const parts = (host, count) => (mobile ? mobileComposition(count) : composition())
     .map(span => ({ span, host }));
-  const slots = [...parts(topEl, half), ...parts(bottomEl, texts.length - half)];
+  const slots = [...parts(topEl, half), ...parts(bottomEl, pool.length - half)];
 
   // 어느 글이 어느 폭에 앉을지는 정하지 않는다.
   // 긴 글이 좁은 컬럼에 걸려 길게 뻗는 것이 들쭉날쭉한 경계를 만든다.
-  shuffle([...texts]).slice(0, slots.length)
+  shuffle([...pool]).slice(0, slots.length)
     .forEach((text, i) => { slots[i].text = text; });
 
   // 모바일에는 색 판을 얹지 않는 대신 덩어리마다 바탕색을 준다.
@@ -399,25 +403,41 @@ function card(slot) {
   return div;
 }
 
-// 두 장 사이에 끼우는 바. 제가 속한 줄의 --split만 건드린다.
-function makeBar() {
-  const bar = document.createElement('div');
-  bar.className = 'bar';
+// 줄 어디를 잡아도 좌우로 끌면 그 줄의 경계가 따라 움직인다.
+// 세로로 쓸면 스크롤, 가만히 누르면 글 선택이어야 하므로
+// 가로로 확실히(8px 넘게, 세로보다 많이) 움직였을 때만 끌기로 친다.
+// 경계는 집은 자리로 뛰지 않고 손이 간 만큼만 옮긴다.
+function dragToSplit(row) {
+  let startX, startY, startPx, dragging = false;
 
-  bar.addEventListener('pointerdown', event => {
-    bar.setPointerCapture(event.pointerId);
-    event.preventDefault();          // 끄는 동안 글이 선택되지 않게
+  row.addEventListener('pointerdown', event => {
+    startX = event.clientX;
+    startY = event.clientY;
+    startPx = row.firstElementChild.getBoundingClientRect().width;
+    dragging = false;
   });
 
-  bar.addEventListener('pointermove', event => {
-    if (!bar.hasPointerCapture(event.pointerId)) return;
-    const row = bar.parentElement.getBoundingClientRect();
-    const x = Math.min(row.width - SPLIT_MIN_PX,
-                       Math.max(SPLIT_MIN_PX, event.clientX - row.left));
-    bar.parentElement.style.setProperty('--split', x / row.width * 100 + '%');
+  row.addEventListener('pointermove', event => {
+    if (startX === undefined) return;
+    const dx = event.clientX - startX;
+    if (!dragging) {
+      if (Math.abs(dx) < 8 || Math.abs(dx) <= Math.abs(event.clientY - startY)) return;
+      dragging = true;
+      row.setPointerCapture(event.pointerId);
+      row.classList.add('dragging');
+    }
+    const width = row.getBoundingClientRect().width;
+    const x = Math.min(width - SPLIT_MIN_PX, Math.max(SPLIT_MIN_PX, startPx + dx));
+    row.style.setProperty('--split', x / width * 100 + '%');
   });
 
-  return bar;
+  const stop = () => {
+    startX = undefined;
+    dragging = false;
+    row.classList.remove('dragging');
+  };
+  row.addEventListener('pointerup', stop);
+  row.addEventListener('pointercancel', stop);
 }
 
 // 모바일은 두 장씩 한 줄로 묶고 그 사이에 바를 끼운다.
@@ -437,9 +457,12 @@ function renderRows(slots, host) {
       row = document.createElement('div');
       row.className = 'row';
       row.appendChild(card(slot));
+      dragToSplit(row);
       host.appendChild(row);
     } else {
-      row.append(card(slot), makeBar());
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      row.append(card(slot), bar);
       row = null;
     }
   }
